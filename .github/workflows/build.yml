@@ -23,11 +23,13 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Force Gradle wrapper version
+      - name: Force Gradle and Kotlin versions
         run: |
           cd android
           sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.11.1-all.zip|' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's|id("org.jetbrains.kotlin.android") version ".*"|id("org.jetbrains.kotlin.android") version "2.0.21"|' settings.gradle.kts
           cat gradle/wrapper/gradle-wrapper.properties
+          cat settings.gradle.kts
 
       - name: Get dependencies
         run: flutter pub get
