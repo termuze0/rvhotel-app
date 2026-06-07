@@ -23,6 +23,12 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Force Gradle wrapper version
+        run: |
+          cd android
+          sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.11.1-all.zip|' gradle/wrapper/gradle-wrapper.properties
+          cat gradle/wrapper/gradle-wrapper.properties
+
       - name: Get dependencies
         run: flutter pub get
 
