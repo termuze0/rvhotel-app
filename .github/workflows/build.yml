@@ -19,12 +19,15 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '17'  # backward compatible with your VERSION_11 setting
+
+      - name: Install NDK 27.0.12077973
+        run: echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;27.0.12077973"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          flutter-version: '3.19.6'   # Dart 3.3.4 — matches sdk: ^3.0.0
           channel: 'stable'
           cache: true
 
