@@ -1,16 +1,41 @@
-name: SSH Debug Session
+name: Plain SSH Access
 
 on:
-  workflow_dispatch:  # manual trigger button on GitHub
+  workflow_dispatch:
 
 jobs:
-  debug:
+  ssh-access:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-      - run: flutter pub get
-      - name: Setup SSH session
-        uses: mxschmitt/action-tmate@v3
+
+      - name: Install OpenSSH server
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-server
+          sudo mkdir -p /home/runner/.ssh
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" | sudo tee /home/runner/.ssh/authorized_keys
+          sudo chmod 700 /home/runner/.ssh
+          sudo chmod 600 /home/runner/.ssh/authorized_keys
+          sudo chown -R runner:runner /home/runner/.ssh
+          sudo service ssh start
+
+      - name: Install ngrok
+        run: |
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt update && sudo apt install -y ngrok
+          ngrok config add-authtoken ${{ secrets.NGROK_AUTHTOKEN }}
+
+      - name: Start ngrok TCP tunnel for SSH
+        run: |
+          ngrok tcp 22 --log=stdout > ngrok.log &
+          sleep 5
+          cat ngrok.log
+
+      - name: Print SSH connection info
+        run: |
+          curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"[^"]*'
+
+      - name: Keep session alive
+        run: sleep 21000   # ~6 hours, matches max job runtime
